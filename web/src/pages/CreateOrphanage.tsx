@@ -1,13 +1,12 @@
-import React, { FormEvent } from "react";
+import React, { useState, FormEvent, ChangeEvent } from "react";
 import { Map, Marker, TileLayer } from 'react-leaflet';
 import { LeafletMouseEvent } from 'leaflet';
 
 import { FiPlus } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
+import mapIcon from "../utils/mapIcon";
 
 import '../styles/pages/create-orphanage.css';
-import mapIcon from "../utils/mapIcon";
-import { useState } from "react";
 
 export default function OrphanagesMap() {
   const [position, setPosition] = useState({ latitude: 0, longitude: 0});
@@ -17,6 +16,8 @@ export default function OrphanagesMap() {
   const [instructions, setInstructions] = useState('');
   const [opening_hours, setOpeningHours] = useState('');
   const [open_on_weekends, setOpenOnWeekends] = useState(true);
+  const [images, setImages] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   
   function handleMapClick(event: LeafletMouseEvent) {
     const { lat, lng } = event.latlng;
@@ -27,20 +28,24 @@ export default function OrphanagesMap() {
     });
   }
 
+  function handleSelectImages(event: ChangeEvent<HTMLInputElement>) {
+    if (!event.target.files) {
+      return;
+    }
+
+    const selectedImages = Array.from(event.target.files);
+
+    setImages(selectedImages);
+
+    const selectedImagesPreview = selectedImages.map(image => {
+      return URL.createObjectURL(image);
+    });
+
+    setPreviewImages(selectedImagesPreview);
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-
-    const { latitude, longitude } = position;
-
-    console.log({
-      name,
-      about,
-      latitude,
-      longitude,
-      instructions,
-      opening_hours,
-      open_on_weekends
-    })
   }
 
   return (
@@ -96,13 +101,20 @@ export default function OrphanagesMap() {
             <div className="input-block">
               <label htmlFor="images">Fotos</label>
 
-              <div className="uploaded-image">
+              <div className="images-container">
+                {previewImages.map(image => {
+                  return (
+                    <img key={image} src={image} alt={name} />
+                  )
+                })}
 
+                <label htmlFor="image[]" className="new-image">
+                  <FiPlus size={24} color="#15b6d6" />
+                </label>
               </div>
 
-              <button type="button" className="new-image">
-                <FiPlus size={24} color="#15b6d6" />
-              </button>
+              <input multiple onChange={handleSelectImages} type="file" id="image[]" />
+
             </div>
           </fieldset>
 
